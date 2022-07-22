@@ -1,0 +1,206 @@
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Assignment 1
+
+#Laboratory Exercise 7 Home Assignment 1
+.text
+main: 	li $a0, 20194530 #load input parameter
+	jal abs #jump and link to abs procedure
+	nop
+	add $s0, $zero, $v0
+	li $v0,10 #terminate
+	syscall
+endmain:
+#--------------------------------------------------------------------
+# function abs
+# param[in] $a1 the interger need to be gained the absolute value
+# return $v0 absolute value
+#--------------------------------------------------------------------
+abs:
+	sub $v0,$zero,$a0 #put -(a0) in v0; in case (a0)<0
+	bltz $a0,done #if (a0)<0 then done
+	nop
+	add $v0,$a0,$zero #else put (a0) in v0
+done:
+	jr $ra
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Assignment 2
+
+#Laboratory Exercise 7, Home Assignment 2
+.text
+main: 	li $a0,5 #load test input
+	      li $a1,3
+	      li $a2,0
+	jal max #call max procedure
+	nop
+endmain: j exit
+#---------------------------------------------------------------------
+#Procedure max: find the largest of three integers
+#param[in] $a0 integers
+#param[in] $a1 integers
+#param[in] $a2 integers
+#return $v0 the largest value
+#---------------------------------------------------------------------
+max: 	add $v0,$a0,$zero #copy (a0) in v0; largest so far
+	sub $t0,$a1,$v0 #compute (a1)-(v0)
+	bltz $t0,okay #if (a1)-(v0)<0 then no change
+	nop
+	add $v0,$a1,$zero #else (a1) is largest thus far
+okay: 	sub $t0,$a2,$v0 #compute (a2)-(v0)
+	bltz $t0,done #if (a2)-(v0)<0 then no change
+	nop
+	add $v0,$a2,$zero #else (a2) is largest overall
+done: 	jr $ra #return to calling program
+
+exit:
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Assignment 3
+
+#Laboratory Exercise 7, Home Assignment 3
+.text
+push: 	li $s0, 1 
+	li $s1, 3 
+	addi $sp,$sp,-8 #adjust the stack pointer
+	sw $s0,0($sp) #push $s0 to stack
+	sw $s1,4($sp) #push $s1 to stack
+work: 	nop
+	nop
+	nop
+pop: 	lw $s0,0($sp) #pop from stack to $s0
+	lw $s1,4($sp) #pop from stack to $s1
+	addi $sp,$sp,8 #adjust the stack pointer
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Assignment 4
+
+#Laboratory Exercise 7, Home Assignment 4
+.data
+Message: .asciiz "Ket qua tinh giai thua la: "
+.text
+main: 	jal WARP
+print: 	add $a1, $v0, $zero # $a0 = result from N!
+	li $v0, 56
+	la $a0, Message
+	syscall
+quit: 	li $v0, 10 #terminate
+	syscall
+endmain:
+#---------------------------------------------------------------------
+#Procedure WARP: assign value and call FACT
+#---------------------------------------------------------------------
+WARP: 	sw $fp,-4($sp) #save frame pointer (1)
+	addi $fp,$sp,0 #new frame pointer point to the top (2)
+	addi $sp,$sp,-8 #adjust stack pointer (3)
+	sw $ra,0($sp) #save return address (4)
+	li $a0,6 #load test input N
+	jal FACT #call fact procedure
+	nop
+	lw $ra,0($sp) #restore return address (5)
+	addi $sp,$fp,0 #return stack pointer (6)
+	lw $fp,-4($sp) #return frame pointer (7)
+	jr $ra
+wrap_end:
+#---------------------------------------------------------------------
+#Procedure FACT: compute N!
+#param[in] $a0 integer N
+#return $v0 the largest value
+#---------------------------------------------------------------------
+FACT: 	sw $fp,-4($sp) #save frame pointer
+	addi $fp,$sp,0 #new frame pointer point to stack’s top
+	addi $sp,$sp,-12 #allocate space for $fp,$ra,$a0 in stack
+	sw $ra,4($sp) #save return address
+	sw $a0,0($sp) #save $a0 register
+	slti $t0,$a0,2 #if input argument N < 2
+	beq $t0,$zero,recursive#if it is false ((a0 = N) >=2)
+	nop
+	li $v0,1 #return the result N!=1
+	j done
+	nop
+recursive:
+	addi $a0,$a0,-1 #adjust input argument
+	jal FACT #recursive call
+	nop
+	lw $v1,0($sp) #load a0
+	mult $v1,$v0 #compute the result
+	mflo $v0
+done: 	lw $ra,4($sp) #restore return address
+	lw $a0,0($sp) #restore a0
+	addi $sp,$fp,0 #restore stack pointer
+	lw $fp,-4($sp) #restore frame pointer
+	jr $ra #jump to calling
+fact_end:
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Assignment 5
+
+.data
+message_max: .asciiz "so lon nhat la : "
+message_min: .asciiz "so nho nhat la : "
+enter: .asciiz "\n"
+.text
+load_data: 	li $s0, 12
+		li $s1, 31
+		li $s2, 2
+		li $s3, -17
+		li $s4, 45
+		li $s5, -100
+		li $s6, 99
+		li $s7, 15
+main: 	jal push_in_stack
+	nop
+	jal max
+	nop
+	jal min 
+	nop
+print_max:	li $v0, 4
+		la $a0, message_max
+		syscall
+		li $v0, 1
+		add $a0, $zero, $t1
+		syscall
+		li $v0, 4
+		la $a0, enter
+		syscall
+print_min:	li $v0, 4
+		la $a0, message_min
+		syscall
+		li $v0, 1
+		add $a0, $zero, $t2
+		syscall
+exit: 	li $v0, 10
+	syscall
+end_main:
+#-----------------------------------
+push_in_stack: 	sw $s0, 0($sp)
+		sw $s1, -4($sp)
+		sw $s2, -8($sp)
+		sw $s3, -12($sp)
+		sw $s4, -16($sp)
+		sw $s5, -20($sp)
+		sw $s6, -24($sp)
+		sw $s7, -28($sp)
+		add $fp, $sp, -32
+push_end:	jr $ra
+#----------------------------------------------
+max: 	lw $v1, 0($sp)
+	add $sp, $sp, -4 #adjust stack pointer
+	beq $sp, $fp, max_end
+	slt $t0, $v1, $t1
+	bne $t0, $zero, max
+	add $t1, $zero, $v1
+	j max
+max_end: 	add $sp, $sp, 32 #adjust stack pointer to the top of stack
+		jr $ra
+#----------------------------------------------
+min: 	lw $v1, 0($sp)
+	add $sp, $sp, -4 #adjust stack pointer
+	beq $sp, $fp, min_end
+	slt $t0, $t2, $v1
+	bne $t0, $zero, min
+	add $t2, $zero, $v1
+	j min
+min_end:	add $sp, $sp, 32 #adjust stack pointer to the top of stack 
+		jr $ra
+
